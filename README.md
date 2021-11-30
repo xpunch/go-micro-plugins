@@ -1,2 +1,2 @@
-# go-micro-plugins
+# Go Micro Plugins
 go micro plugins
