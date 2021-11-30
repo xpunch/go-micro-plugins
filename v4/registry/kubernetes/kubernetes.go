@@ -12,6 +12,7 @@ import (
 
 	"github.com/xpunch/go-micro-plugins/v4/registry/kubernetes/client"
 	"go-micro.dev/v4/cmd"
+	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/registry"
 )
 
@@ -247,6 +248,7 @@ func (c *kregistry) ListServices(opts ...registry.ListOption) ([]*registry.Servi
 			if err := json.Unmarshal([]byte(*v), &svc); err != nil {
 				continue
 			}
+			logger.Debugf("%s %s %#v", k, v, svc)
 			s, ok := svcs[svc.Name+svc.Version]
 			if !ok {
 				svcs[svc.Name+svc.Version] = &svc
@@ -259,6 +261,11 @@ func (c *kregistry) ListServices(opts ...registry.ListOption) ([]*registry.Servi
 	var list []*registry.Service
 	for _, s := range svcs {
 		list = append(list, s)
+	}
+	logger.Debugf("svcs: %#v", svcs)
+	logger.Debugf("result: %d", len(list))
+	for _, s := range list {
+		logger.Debugf("%#v", s)
 	}
 	return list, nil
 }
