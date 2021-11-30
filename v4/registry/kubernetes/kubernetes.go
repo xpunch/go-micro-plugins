@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/xpunch/go-micro-plugins/v4/registry/kubernetes/client"
-
 	"go-micro.dev/v4/cmd"
+	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/registry"
 )
 
@@ -242,12 +242,14 @@ func (c *kregistry) ListServices(opts ...registry.ListOption) ([]*registry.Servi
 				continue
 			}
 
+			logger.Debugf("kubernets.ListServices: %s %s", k, *v)
 			// we have to unmarshal the annotation itself since the
 			// key is encoded to match the regex restriction.
 			var svc registry.Service
 			if err := json.Unmarshal([]byte(*v), &svc); err != nil {
 				continue
 			}
+			logger.Debugf("ListServices.Unmarshal: %v", svc)
 			s, ok := svcs[svc.Name+svc.Version]
 			if !ok {
 				svcs[svc.Name] = &svc
@@ -255,13 +257,15 @@ func (c *kregistry) ListServices(opts ...registry.ListOption) ([]*registry.Servi
 			}
 			// append to service:version nodes
 			s.Nodes = append(s.Nodes, svc.Nodes...)
+			logger.Debugf("ListServices.Nodes: %v", len(svc.Nodes))
 		}
 	}
 
 	var list []*registry.Service
 	for _, s := range svcs {
-		list = append(list, &registry.Service{Name: s.Name, Version: s.Version})
+		list = append(list, s)
 	}
+	logger.Debugf("ListServices.Result: %v", list)
 	return list, nil
 }
 
