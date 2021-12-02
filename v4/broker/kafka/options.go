@@ -8,6 +8,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/pkg/errors"
 	"go-micro.dev/v4/broker"
+	"go-micro.dev/v4/codec"
 	"go-micro.dev/v4/logger"
 )
 
@@ -74,14 +75,19 @@ func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cl
 			}
 			continue
 		}
-		m.Header["key"] = fmt.Sprintf("%s/%d/%d", msg.Topic, msg.Partition, msg.Offset)
+		if m.Header == nil {
+			m.Header = make(map[string]string)
+		}
+		key := fmt.Sprintf("%s/%d/%d", msg.Topic, msg.Partition, msg.Offset)
+		m.Header["key"] = key
 
 		err := h.handler(p)
 		if err == nil && h.subopts.AutoAck {
 			sess.MarkMessage(msg, "")
 		} else if err != nil {
-			if strings.Contains(err.Error(), "cannot parse invalid wire-format data") {
-				logger.Errorf("[kafka]proto unmarshal error: %v", err)
+			if errors.Is(err, codec.ErrInvalidMessage) ||
+				strings.Contains(err.Error(), "cannot parse invalid wire-format data") {
+				logger.Errorf("[kafka]unmarshal error:%s: %v", key, err)
 				sess.MarkMessage(msg, "")
 				continue
 			}
@@ -93,7 +99,7 @@ func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cl
 				}
 			} else {
 				logger.Errorf("[kafka]subscriber error: %v", err)
-				return errors.Wrapf(err, "%d", msg.Offset)
+				return errors.Wrapf(err, "offset: %d", msg.Offset)
 			}
 		}
 	}

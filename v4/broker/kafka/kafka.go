@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"go-micro.dev/v4/broker"
 	"go-micro.dev/v4/cmd"
-	"go-micro.dev/v4/codec/json"
 	"go-micro.dev/v4/logger"
 )
 
@@ -256,8 +255,7 @@ func (k *kBroker) String() string {
 
 func NewBroker(opts ...broker.Option) broker.Broker {
 	options := broker.Options{
-		// default to json codec
-		Codec:   json.Marshaler{},
+		Codec:   Marshaler{},
 		Context: context.Background(),
 	}
 
