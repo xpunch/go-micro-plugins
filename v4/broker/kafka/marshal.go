@@ -43,7 +43,6 @@ func (Marshaler) Unmarshal(d []byte, v interface{}) error {
 		}
 		m.Header["Content-Type"] = "application/json"
 		m.Body = d
-		return nil
 	}
 	return json.Unmarshal(d, v)
 }
