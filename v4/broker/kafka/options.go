@@ -86,7 +86,8 @@ func (h *consumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cl
 			sess.MarkMessage(msg, "")
 		} else if err != nil {
 			if errors.Is(err, codec.ErrInvalidMessage) ||
-				strings.Contains(err.Error(), "cannot parse invalid wire-format data") {
+				strings.Contains(err.Error(), "cannot parse invalid wire-format data") ||
+				strings.Contains(err.Error(), "unknown field") {
 				logger.Errorf("[kafka]unmarshal error:%s: %v", key, err)
 				sess.MarkMessage(msg, "")
 				continue
